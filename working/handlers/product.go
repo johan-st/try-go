@@ -17,7 +17,11 @@ func NewProducts(l *log.Logger) *Products {
 
 func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		p.GetProducts(rw, r)
+		p.getProducts(rw, r)
+		return
+	}
+	if r.Method == http.MethodPost {
+		p.addProduct(rw, r)
 		return
 	}
 
@@ -25,7 +29,8 @@ func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	rw.WriteHeader(http.StatusNotImplemented)
 }
 
-func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle GET products")
 	list := data.GetProducts()
 	err := list.WriteJSON(rw)
 
@@ -33,4 +38,16 @@ func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 		http.Error(rw, "Unable to send json", http.StatusInternalServerError)
 	}
 
+}
+
+func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Handle POST products")
+
+	prod := &data.Product{}
+	err := prod.CreateFromJson(r.Body)
+	if err != nil {
+		http.Error(rw, "Unable to create product from JSON", http.StatusBadRequest)
+	}
+	data.AddProduct(prod)
+	// p.l.Printf("Prod: %#v", prod)
 }
