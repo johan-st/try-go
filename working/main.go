@@ -12,14 +12,17 @@ import (
 )
 
 func main() {
+
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
-	helloHandler := handlers.NewHello(l)
-	goodbyeHandler := handlers.NewGoodbye(l)
 
+	// create handlers
+	productsHandler := handlers.NewProducts(l)
+
+	// create mux and register handlers
 	sm := http.NewServeMux()
-	sm.Handle("/", helloHandler)
-	sm.Handle("/goodbye", goodbyeHandler)
+	sm.Handle("/", productsHandler)
 
+	// create and configure server
 	s := &http.Server{
 		Addr:         ":9090",
 		Handler:      sm,
@@ -29,6 +32,7 @@ func main() {
 	}
 
 	go func() {
+		l.Println("Starting server on port 9090")
 		err := s.ListenAndServe()
 		if err != nil {
 			l.Fatal(err)
@@ -42,6 +46,7 @@ func main() {
 	sig := <-signalChan
 	l.Println("Graceful shutdown", sig)
 
+	// No context leakage because of shutdown
 	tc, _ := context.WithTimeout(context.Background(), 30*time.Second)
 	s.Shutdown(tc)
 }
