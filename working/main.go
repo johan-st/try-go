@@ -12,20 +12,13 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
 	helloHandler := handlers.NewHello(l)
 	goodbyeHandler := handlers.NewGoodbye(l)
 
 	sm := http.NewServeMux()
 	sm.Handle("/", helloHandler)
 	sm.Handle("/goodbye", goodbyeHandler)
-	// http.HandleFunc("/", func(rw http.ResponseWriter, r *http.Request) {
-	// 	handlers.Hello(log)
-	// })
-
-	// http.HandleFunc("/goodbye", func(rw http.ResponseWriter, r *http.Request) {
-	// 	log.Printf("Goodbye World")
-	// })
 
 	s := &http.Server{
 		Addr:         ":9090",
