@@ -2,6 +2,7 @@ package data
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"time"
 )
@@ -31,6 +32,15 @@ func (p *Products) WriteJSON(w io.Writer) error {
 
 func GetProducts() Products {
 	return productList
+}
+func UpdateProduct(id int, prod *Product) error {
+	for pos, p := range productList {
+		if p.ID == id {
+			productList[pos] = prod
+			return nil
+		}
+	}
+	return errors.New("given id not found in products")
 }
 func AddProduct(p *Product) {
 	p.ID = getNextID()

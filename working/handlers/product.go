@@ -3,7 +3,9 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/johan-st/try-go/working/data"
 )
 
@@ -15,21 +17,7 @@ func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
 }
 
-func (p *Products) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		p.getProducts(rw, r)
-		return
-	}
-	if r.Method == http.MethodPost {
-		p.addProduct(rw, r)
-		return
-	}
-
-	// catch-all
-	rw.WriteHeader(http.StatusNotImplemented)
-}
-
-func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) GetProducts(rw http.ResponseWriter, req *http.Request) {
 	p.l.Println("Handle GET products")
 	list := data.GetProducts()
 	err := list.WriteJSON(rw)
@@ -40,11 +28,27 @@ func (p *Products) getProducts(rw http.ResponseWriter, r *http.Request) {
 
 }
 
-func (p *Products) addProduct(rw http.ResponseWriter, r *http.Request) {
+func (p *Products) UpdateProduct(rw http.ResponseWriter, req *http.Request) {
+	p.l.Println("Handle PUT product")
+	vars := mux.Vars(req)
+	id, errId := strconv.Atoi(vars["id"])
+	if errId != nil {
+		http.Error(rw, "unable to parse id from url", http.StatusBadRequest)
+		return
+	}
+	prod := &data.Product{}
+	prod.CreateFromJson(req.Body)
+	err := data.UpdateProduct(id, prod)
+	if err != nil {
+		http.Error(rw, "unable to process request", http.StatusBadRequest)
+	}
+}
+
+func (p *Products) AddProduct(rw http.ResponseWriter, req *http.Request) {
 	p.l.Println("Handle POST products")
 
 	prod := &data.Product{}
-	err := prod.CreateFromJson(r.Body)
+	err := prod.CreateFromJson(req.Body)
 	if err != nil {
 		http.Error(rw, "Unable to create product from JSON", http.StatusBadRequest)
 	}
